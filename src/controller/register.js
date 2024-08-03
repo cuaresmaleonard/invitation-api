@@ -21,7 +21,7 @@ module.exports = {
 	getRegisterId: async function (id) {
 		const data = await readById({ id, registrationTable });
 		if (data !== undefined && data.length > 0) {
-			return readById({ id, registrationTable });
+			return data;
 		} else {
 			return { status: 400, message: "ID does not exist or invalid." };
 		}
