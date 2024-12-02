@@ -4,11 +4,13 @@ const {
 	insert,
 	updateById,
 	deleteById,
+	deleteByFamily,
 } = require("../model/register");
 
-// const { insert: insertUpdate } = require("../model/updates");
+const { readById: readByIdFamily } = require("../model/family");
 const { updates: insertUpdate } = require("./updates");
 const date = require("date-and-time");
+const { isArrayOfObjects } = require("../utilities/validationUtils");
 const dateTime = date.format(new Date(), "YYYY-MM-DD HH:mm:ss");
 const registrationTable = "registration";
 
@@ -27,28 +29,51 @@ module.exports = {
 		}
 	},
 	postRegister: async function (req) {
+		const familyId = req.params.familyId;
+		const namesPayload = req.body;
+
+		// Function to check if variable is an array of objects
+		if (!isArrayOfObjects(namesPayload))
+			return { status: 400, message: "Invalid payload" };
+
+		const family = await readByIdFamily({
+			uuid: familyId,
+			table: "family",
+		});
+		console.log("family", family)
+
+		const allowedCount = family.length > 0 ? family[0]?.count : 0;
+
+		if (namesPayload.length > allowedCount) {
+			return { status: 403, message: "Maximum allowed guest is reached" };
+		}
+		await deleteByFamily({ registrationTable, familyId });
+
 		try {
-			const { fname, lname, family_id } = req.body;
-			const id = Math.floor(1000000000 + Math.random() * 900000);
-			const registerData = {
-				id,
-				fname,
-				lname,
-				family_id,
-				create_date: dateTime,
-			};
+			const registerData = namesPayload.map(({ name }) => {
+				return [
+					Math.floor(1000000000 + Math.random() * 900000),
+					name,
+					familyId,
+					dateTime,
+				];
+			});
+
+			// validate if the number of guest is valid and check if there is an existing registration
+
 			const resultInsert = await insert({
 				registrationTable,
 				registerData,
 			});
 
-			await insertUpdate({
-				result: resultInsert,
-				update_date: dateTime,
-				registration_id: id,
-			});
+			// fix this issue when inserting an update
+			// const insertUpdate = insertUpdate({
+			// 	result: resultInsert,
+			// 	update_date: dateTime,
+			// 	registration_id: id,
+			// });
 
-			return resultInsert;
+			return { status: 200, message: resultInsert };
 		} catch (error) {}
 	},
 	updateRegister: async function (req) {

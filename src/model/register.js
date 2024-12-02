@@ -28,12 +28,17 @@ module.exports = {
 		}
 	},
 	insert: async function ({ registrationTable, registerData }) {
-		const { fname, lname, family_id, id, create_date } = registerData;
 		try {
 			const client = await connect();
+			const text = ` INSERT INTO ${registrationTable}(id, name, family_id, create_date) SELECT * FROM UNNEST ( $1::integer[], $2::text[], $3::integer[], $4::timestamptz[] ) RETURNING * `;
 			const result = await client.query({
-				text: `INSERT INTO ${registrationTable}(id, fname, lname, family_id, create_date) VALUES($1, $2, $3, $4, $5) RETURNING *`,
-				values: [id, fname, lname, family_id, create_date],
+				text: text,
+				values: [
+					registerData.map((v) => v[0]), // ids
+					registerData.map((v) => v[1]), // names
+					registerData.map((v) => v[2]), // family_ids
+					registerData.map((v) => v[3]), // create_dates
+				],
 			});
 			endConnection(client);
 			return result.rows;
@@ -62,6 +67,20 @@ module.exports = {
 			const result = await client.query({
 				text: `UPDATE ${registrationTable} SET deleted = $1 WHERE id = $2 RETURNING *`,
 				values: [true, id],
+			});
+			endConnection(client);
+			return result.rows;
+		} catch (error) {
+			console.log("Error encountered", error);
+		}
+	},
+	deleteByFamily: async function ({ registrationTable, familyId }) {
+		console.log(registrationTable, familyId)
+		try {
+			const client = await connect();
+			const result = await client.query({
+				text: `UPDATE ${registrationTable} SET deleted = $1 WHERE family_id = $2 RETURNING *`,
+				values: [true, familyId],
 			});
 			endConnection(client);
 			return result.rows;

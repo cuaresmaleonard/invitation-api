@@ -8,7 +8,7 @@ const {
 } = require("../controller/register");
 
 router
-	.route("/register")
+	.route("/register/:familyId")
 	// to create new resources
 	.post(async function (req, res, next) {
 		const data = await postRegister(req);

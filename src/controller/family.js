@@ -21,8 +21,14 @@ module.exports = {
 	},
 	getFamilyId: async function (uuid) {
 		const data = await readById({ uuid, table });
-		if (data !== undefined && data.length > 0) {
-			return data;
+
+		if (data && data.length > 0) {
+			const { id, family, uuid, count } = data[0];
+			const registration = data
+				.filter(({ name }) => name !== undefined)
+				.map(({ name }) => ({ name }));
+
+			return { id, family, uuid, count, registration };
 		} else {
 			return { status: 400, message: "ID does not exist or invalid." };
 		}

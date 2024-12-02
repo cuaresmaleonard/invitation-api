@@ -1,4 +1,5 @@
 const { connect, endConnection } = require("../db/connect");
+const { isValidUUID } = require("../utilities/validationUtils");
 
 module.exports = {
 	read: async function ({ table }) {
@@ -16,14 +17,37 @@ module.exports = {
 	},
 	readById: async function ({ uuid, table }) {
 		try {
-
-			console.log("uuid", uuid)
-
 			const client = await connect();
-			const result = await client.query({
-				text: `SELECT * FROM ${table} WHERE uuid = $1 AND deleted = false`,
+			const isUUID = isValidUUID(uuid);
+			const column = isUUID ? "uuid" : "id";
+
+			let text = `
+			SELECT a.id, family, a.deleted, uuid, count, b.name 
+			FROM ${table} a
+			LEFT JOIN registration b ON a.id = b.family_id
+			WHERE a.${column} = $1
+			AND a.deleted = false
+			AND (b.deleted = false OR b.deleted IS NULL)
+		`;
+
+			let result = await client.query({
+				text,
 				values: [uuid],
 			});
+
+			if (result.rows.length === 0) {
+				text = `
+				SELECT id, family, deleted, uuid, count 
+				FROM ${table}
+				WHERE ${column} = $1
+				AND deleted = false
+			`;
+
+				result = await client.query({
+					text,
+					values: [uuid],
+				});
+			}
 
 			endConnection(client);
 			return result.rows;
@@ -62,7 +86,7 @@ module.exports = {
 	},
 	deleteById: async function ({ table, uuid }) {
 		try {
-			console.log("delete by id")
+			console.log("delete by id");
 			const client = await connect();
 			console.log("table", table);
 			console.log("uuid", uuid);
