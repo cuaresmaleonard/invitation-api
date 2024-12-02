@@ -13,18 +13,22 @@ router
 	.post(async function (req, res, next) {
 		const data = await postFamily(req);
 		res.json(data).status(201).send();
-	})
-	// to retrieve resource
-	.get(async function (req, res, next) {
-		const data = await getFamily();
-		res.json(data);
 	});
+// to retrieve resource
+// .get(async function (req, res, next) {
+// 	const data = await getFamily();
+// 	res.json(data);
+// });
 router
 	.route("/family/:uuid")
 	// to retrieve a single resource
 	.get(async function (req, res, next) {
 		const data = await getFamilyId(req.params.uuid);
-		res.json(data);
+		if (data.status === 400) {
+			res.status(400).json(data);
+		} else {
+			res.json(data);
+		}
 	})
 	.patch(async function (req, res, next) {
 		const data = await updateFamily(req);

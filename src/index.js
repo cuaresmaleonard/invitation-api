@@ -4,16 +4,27 @@ require("dotenv").config();
 const { registerRouter, familyRouter } = require("./routes/index.js");
 const port = 3300;
 const cors = require("cors");
-const host = process.env.HOST;
+const hostVercel = process.env.HOST_VERCEL;
+const hostDomain = process.env.HOST_DNS;
 // parses incoming requests with JSON payloads
 app.use(express.json());
 
 app.use(express.urlencoded({ extended: true }));
 
+const allowedOrigins = [hostVercel, hostDomain];
+
 const corsOptions = {
-	origin: host, // The URL of your local client
-	optionsSuccessStatus: 200,
+    origin: (origin, callback) => {
+        // Check if the origin is in the allowed list
+        if (allowedOrigins.includes(origin) || !origin) {
+            callback(null, true);
+        } else {
+            callback(new Error('Not allowed by CORS'));
+        }
+    },
+    optionsSuccessStatus: 200,
 };
+
 
 app.use(cors(corsOptions));
 

@@ -24,8 +24,9 @@ module.exports = {
 
 		if (data && data.length > 0) {
 			const { id, family, uuid, count } = data[0];
+
 			const registration = data
-				.filter(({ name }) => name !== undefined)
+				.filter(({ name }) => name !== undefined && name !== null)
 				.map(({ name }) => ({ name }));
 
 			return { id, family, uuid, count, registration };
