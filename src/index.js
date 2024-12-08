@@ -14,17 +14,28 @@ app.use(express.urlencoded({ extended: true }));
 const allowedOrigins = [hostVercel, hostDomain];
 
 const corsOptions = {
-    origin: (origin, callback) => {
-        // Check if the origin is in the allowed list
-        if (allowedOrigins.includes(origin) || !origin) {
-            callback(null, true);
-        } else {
-            callback(new Error('Not allowed by CORS'));
-        }
-    },
-    optionsSuccessStatus: 200,
+	origin: (origin, callback) => {
+		// Check if the origin is in the allowed list
+		if (allowedOrigins.includes(origin) || !origin) {
+			callback(null, true);
+		} else {
+			callback(new Error("Not allowed by CORS"));
+		}
+	},
+	optionsSuccessStatus: 200,
 };
 
+const checkOrigin = (req, res, next) => {
+	const origin = req.headers.origin;
+
+	if (origin === hostVercel || origin === hostDomain) {
+		next(); // Allow the request
+	} else {
+		res.status(403).send("Forbidden"); // Block the request
+	}
+};
+
+app.use(checkOrigin);
 
 app.use(cors(corsOptions));
 
