@@ -34,9 +34,9 @@ router
 		const data = await updateFamily(req);
 		res.json(data);
 	})
-	.delete(async function (req, res, next) {
-		const data = await deleteFamily(req.params.uuid);
-		res.status(data.status).send(data);
-	});
+	// .delete(async function (req, res, next) {
+	// 	const data = await deleteFamily(req.params.uuid);
+	// 	res.status(data.status).send(data);
+	// });
 
 module.exports = router;

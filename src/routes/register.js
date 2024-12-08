@@ -30,9 +30,9 @@ router
 		const data = await updateRegister(req);
 		res.json(data);
 	})
-	.delete(async function (req, res, next) {
-		const data = await deleteRegister(req.params.id);
-		res.status(data.status).send(data);
-	});
+	// .delete(async function (req, res, next) {
+	// 	const data = await deleteRegister(req.params.id);
+	// 	res.status(data.status).send(data);
+	// });
 
 module.exports = router;
