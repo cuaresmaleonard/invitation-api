@@ -6,6 +6,7 @@ const port = 3300;
 const cors = require("cors");
 const hostVercel = process.env.HOST_VERCEL;
 const hostDomain = process.env.HOST_DNS;
+const path = require("path");
 // parses incoming requests with JSON payloads
 app.use(express.json());
 
@@ -35,15 +36,17 @@ const checkOrigin = (req, res, next) => {
 	}
 };
 
-app.use(checkOrigin);
+// app.use(checkOrigin);
 
 app.use(cors(corsOptions));
 
 app.get("/", (req, res) => res.send(`API is running...`));
 
-app.use("/api", registerRouter);
+app.use("/images", express.static(path.join(__dirname, "public/images")));
 
-app.use("/api", familyRouter);
+app.use("/api", checkOrigin, registerRouter);
+
+app.use("/api", checkOrigin, familyRouter);
 
 app.listen(port, () => {
 	console.log(`Server is running at port ${port}`);

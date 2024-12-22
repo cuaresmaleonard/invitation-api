@@ -40,7 +40,7 @@ module.exports = {
 			uuid: familyId,
 			table: "family",
 		});
-		console.log("family", family)
+		// console.log("family", family)
 
 		const allowedCount = family.length > 0 ? family[0]?.count : 0;
 
