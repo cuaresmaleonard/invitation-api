@@ -3,6 +3,7 @@ const updateTable = "updates";
 
 module.exports = {
 	updates: async function ({ result, update_date, registration_id }) {
+		console.log("123" );
 		try {
 			const updateData = {
 				update_date,

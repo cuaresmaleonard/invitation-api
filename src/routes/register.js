@@ -11,8 +11,7 @@ router
 	.route("/register/:familyId")
 	// to create new resources
 	.post(async function (req, res, next) {
-		const data = await postRegister(req);
-		res.json(data).status(201).send();
+		const data = await postRegister(req, res);
 	})
 	// to retrieve resource
 	.get(async function (req, res, next) {

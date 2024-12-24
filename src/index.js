@@ -7,6 +7,27 @@ const cors = require("cors");
 const hostVercel = process.env.HOST_VERCEL;
 const hostDomain = process.env.HOST_DNS;
 const path = require("path");
+const rateLimit = require("express-rate-limit");
+
+// Create rate limiter with a window of 15 minutes and a limit of 100 requests per IP
+const limiter = rateLimit({
+	windowMs: 15 * 60 * 1000, // 15 minutes
+	max: 100, // Limit each IP to 100 requests per windowMs
+	message: "Too many requests, please try again later.", // Message to send when limit is exceeded
+	statusCode: 429, // HTTP status code to send when limit is exceeded
+	standardHeaders: true, // Enable the default headers
+	legacyHeaders: false, // Disable the legacy headers
+	keyGenerator: (req) => req.ip, // Use IP address as the key
+	skipFailedRequests: true, // Do not count failed requests
+	skipSuccessfulRequests: true, // Do not count successful requests
+	handler: (req, res, next) => {
+		res.status(429).send("Rate limit exceeded");
+	},
+});
+
+// Apply the rate limiting middleware to all requests
+app.use(limiter);
+
 // parses incoming requests with JSON payloads
 app.use(express.json());
 

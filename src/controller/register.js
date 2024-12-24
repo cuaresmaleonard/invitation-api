@@ -11,8 +11,10 @@ const { readById: readByIdFamily } = require("../model/family");
 const { updates: insertUpdate } = require("./updates");
 const date = require("date-and-time");
 const { isArrayOfObjects } = require("../utilities/validationUtils");
+const { sendEmail } = require("../utilities/sendEmail");
 const dateTime = date.format(new Date(), "YYYY-MM-DD HH:mm:ss");
 const registrationTable = "registration";
+const validator = require("validator");
 
 module.exports = {
 	getRegister: function () {
@@ -28,29 +30,50 @@ module.exports = {
 			return { status: 400, message: "ID does not exist or invalid." };
 		}
 	},
-	postRegister: async function (req) {
-		const familyId = req.params.familyId;
-		const namesPayload = req.body;
 
-		// Function to check if variable is an array of objects
-		if (!isArrayOfObjects(namesPayload))
-			return { status: 400, message: "Invalid payload" };
+	postRegister: async function (req, res) {
+		const familyId = req.params.familyId;
+		const registration = req.body.registration;
+		const email = req.body.email;
+
+		// Sanitize email
+		const sanitizedEmail = validator.normalizeEmail(email);
+
+		// Validate email
+		if (!validator.isEmail(sanitizedEmail)) {
+			return res
+				.status(400)
+				.json({ status: 400, message: "Invalid email format" });
+		}
+
+		// Sanitize and validate registration
+		if (!isArrayOfObjects(registration)) {
+			return res.status(400).json({ status: 400, message: "Invalid payload" });
+		}
+
+		// Sanitize names
+		const sanitizedRegistration = registration.map((item) => {
+			return {
+				name: validator.escape(item.name.trim()),
+			};
+		});
 
 		const family = await readByIdFamily({
 			uuid: familyId,
 			table: "family",
 		});
-		// console.log("family", family)
 
 		const allowedCount = family.length > 0 ? family[0]?.count : 0;
 
-		if (namesPayload.length > allowedCount) {
-			return { status: 403, message: "Maximum allowed guest is reached" };
+		if (sanitizedRegistration.length > allowedCount) {
+			return res
+				.status(403)
+				.json({ status: 403, message: "Maximum allowed guest is reached" });
 		}
 		await deleteByFamily({ registrationTable, familyId });
 
 		try {
-			const registerData = namesPayload.map(({ name }) => {
+			const registerData = sanitizedRegistration.map(({ name }) => {
 				return [
 					Math.floor(1000000000 + Math.random() * 900000),
 					name,
@@ -59,23 +82,27 @@ module.exports = {
 				];
 			});
 
-			// validate if the number of guest is valid and check if there is an existing registration
-
+			// Validate if the number of guests is valid and check if there is an existing registration
 			const resultInsert = await insert({
 				registrationTable,
 				registerData,
 			});
 
-			// fix this issue when inserting an update
-			// const insertUpdate = insertUpdate({
-			// 	result: resultInsert,
-			// 	update_date: dateTime,
-			// 	registration_id: id,
+			sendEmail({ email: sanitizedEmail, registration: sanitizedRegistration });
+
+			// Fix this issue when inserting an update
+			// const insertUpdate = await insertUpdate({
+			//     result: resultInsert,
+			//     update_date: dateTime,
+			//     registration_id: familyId,
 			// });
 
-			return { status: 200, message: resultInsert };
-		} catch (error) {}
+			res.status(200).json({ status: 200, message: resultInsert });
+		} catch (error) {
+			res.status(500).json({ status: 500, message: error.message });
+		}
 	},
+
 	updateRegister: async function (req) {
 		const id = req.params.id;
 		const { fname, lname, family_id } = req.body;
