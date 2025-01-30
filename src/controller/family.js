@@ -36,13 +36,14 @@ module.exports = {
 	},
 	postFamily: async function (req) {
 		try {
-			const { family } = req.body;
+			const { family, count } = req.body;
 			const id = Math.floor(1000000000 + Math.random() * 900000);
 			const uuid = uuidv4();
 			const data = {
 				id,
 				uuid,
 				family,
+				count,
 				deleted: false,
 			};
 			const resultInsert = await insert({

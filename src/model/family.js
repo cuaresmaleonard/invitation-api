@@ -56,12 +56,12 @@ module.exports = {
 		}
 	},
 	insert: async function ({ table, data }) {
-		const { id, uuid, family, deleted } = data;
+		const { id, uuid, family, count, deleted } = data;
 		try {
 			const client = await connect();
 			const result = await client.query({
-				text: `INSERT INTO ${table}(id, uuid, family, deleted) VALUES($1, $2, $3, $4) RETURNING *`,
-				values: [id, uuid, family, deleted],
+				text: `INSERT INTO ${table}(id, uuid, family, count, deleted) VALUES($1, $2, $3, $4, $5) RETURNING *`,
+				values: [id, uuid, family, count, deleted],
 			});
 			endConnection(client);
 			return result.rows;
