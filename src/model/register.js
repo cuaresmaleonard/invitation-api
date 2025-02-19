@@ -30,7 +30,7 @@ module.exports = {
 	insert: async function ({ registrationTable, registerData }) {
 		try {
 			const client = await connect();
-			const text = ` INSERT INTO ${registrationTable}(id, name, family_id, create_date) SELECT * FROM UNNEST ( $1::integer[], $2::text[], $3::integer[], $4::timestamptz[] ) RETURNING * `;
+			const text = ` INSERT INTO ${registrationTable}(id, name, family_id, create_date, email) SELECT * FROM UNNEST ( $1::integer[], $2::text[], $3::integer[], $4::timestamptz[], $5::text[] ) RETURNING * `;
 			const result = await client.query({
 				text: text,
 				values: [
@@ -38,6 +38,7 @@ module.exports = {
 					registerData.map((v) => v[1]), // names
 					registerData.map((v) => v[2]), // family_ids
 					registerData.map((v) => v[3]), // create_dates
+					registerData.map((v) => v[4]), // email
 				],
 			});
 			endConnection(client);
@@ -75,7 +76,7 @@ module.exports = {
 		}
 	},
 	deleteByFamily: async function ({ registrationTable, familyId }) {
-		console.log(registrationTable, familyId)
+		console.log(registrationTable, familyId);
 		try {
 			const client = await connect();
 			const result = await client.query({

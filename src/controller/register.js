@@ -79,6 +79,7 @@ module.exports = {
 					name,
 					familyId,
 					dateTime,
+					sanitizedEmail
 				];
 			});
 
